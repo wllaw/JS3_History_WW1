@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>人機對決：歐洲火藥局</title>
     <style>
-        /* 全局基礎字體 */
         body { 
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
             background-color: #121212; 
@@ -41,7 +40,7 @@
             line-height: 1.5;
         }
         
-        .status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; }
+        .status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
         .stat-card { 
             background: #2a2a2a; 
             padding: 12px 8px; 
@@ -77,21 +76,59 @@
         }
         .event-title { font-weight: bold; color: #fd7e14; margin-bottom: 8px; font-size: 1.2em; }
 
-        .meter-container { margin: 20px 0; background: #2a2a2a; padding: 14px; border-radius: 8px; font-size: 1.1em; }
+        .meter-container { 
+            margin: 20px 0; 
+            background: #2a2a2a; 
+            padding: 14px; 
+            border-radius: 8px; 
+            font-size: 1.1em; 
+            transition: all 0.3s ease;
+        }
+        
+        .meter-container.large-meter {
+            background: #1a1a1a;
+            border: 2px solid #ffc107;
+            padding: 24px;
+            font-size: 1.35em;
+            margin: 25px 0;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+        }
+
         .danger-meter { height: 22px; background: #444; border-radius: 11px; overflow: hidden; margin-top: 8px; }
         .danger-fill { height: 100%; width: 15%; background: linear-gradient(90deg, #28a745, #ffc107, #dc3545); transition: width 0.4s ease; }
+
+        .war-status-banner {
+            margin-top: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.3em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .war-status-banner.exploded {
+            background: #4a1d24;
+            color: #ff4d4d;
+            border: 2px solid #dc3545;
+            box-shadow: 0 0 12px rgba(220, 53, 69, 0.6);
+        }
+        .war-status-banner.warning {
+            background: #3d340c;
+            color: #ffc107;
+            border: 2px solid #ffc107;
+            box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+        }
 
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
         button { 
             background: #343a40; 
             color: #fff; 
             border: 1px solid #555; 
-            padding: 14px 16px; 
-            font-size: 1em; 
+            padding: 16px; 
+            font-size: 1.05em; 
             border-radius: 8px; 
             cursor: pointer; 
             transition: all 0.2s; 
-            text-align: left; 
+            text-align: center; 
             line-height: 1.4; 
         }
         button:hover { background: #495057; border-color: #888; }
@@ -114,7 +151,7 @@
 
         #log { 
             background: #0a0a0a; 
-            height: 150px; 
+            height: 160px; 
             overflow-y: auto; 
             text-align: left; 
             padding: 12px; 
@@ -125,7 +162,6 @@
             line-height: 1.5; 
         }
 
-        /* 雙欄並列結算區域 */
         .end-game-wrapper { grid-column: span 2; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin-bottom: 20px; }
         .summary-card { background: #1c2d27; border: 1px solid #28a745; padding: 18px; border-radius: 10px; line-height: 1.7; font-size: 1.05em; }
@@ -133,7 +169,6 @@
         .thinking-card { background: #2b2b11; border: 1px solid #ffc107; padding: 18px; border-radius: 10px; line-height: 1.7; font-size: 1.05em; }
         .summary-card h3, .thinking-card h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #444; }
 
-        /* 彈窗 Modal 樣式 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #222; border: 2px solid #17a2b8; border-radius: 12px; max-width: 680px; width: 90%; padding: 25px; text-align: left; box-shadow: 0 0 25px rgba(23, 162, 184, 0.5); }
         .modal-header { font-size: 1.4em; font-weight: bold; color: #17a2b8; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; }
@@ -144,7 +179,6 @@
         .next-btn { background: #17a2b8; color: #fff; border: none; padding: 12px 24px; font-size: 1.1em; font-weight: bold; border-radius: 8px; cursor: pointer; float: right; }
         .next-btn:hover { background: #138496; }
 
-        /* 開場簡介卡片樣式 */
         .intro-card { background: #25282a; border: 2px solid #ffc107; border-radius: 12px; padding: 28px; text-align: left; line-height: 1.7; margin: 20px 0; font-size: 1.05em; }
         .start-btn-large { 
             background: #28a745; 
@@ -172,39 +206,38 @@
         🎯 <b>國家目標</b>：歐洲局勢動盪，請透過 5 次歷史決策<b>極大化國家綜合國力</b>！
     </div>
 
-    <!-- 5 個國力指標 -->
-    <div class="status-grid">
+    <div class="status-grid" id="main-status-grid">
         <div class="stat-card">⚔️ 軍事力量<strong id="st-military">0</strong></div>
         <div class="stat-card">🔥 民意支持<strong id="st-pop">0%</strong></div>
         <div class="stat-card">💰 經濟實力<strong id="st-econ">0</strong></div>
-        <div class="stat-card">🌍 殖民地版圖<strong id="st-colony">0</strong></div>
-        <div class="stat-card">🏛️ 國際聲譽<strong id="st-rep">0</strong></div>
+        <div class="stat-card">🏛️ 國際地位<strong id="st-rep">0</strong></div>
     </div>
 
-    <!-- 遊戲主體區域 -->
     <div id="game-main-area" style="display: none;">
-        <div class="timer-box">
+        <div class="timer-box" id="timer-box">
             <span>⏳ 思考時間限時：</span>
             <span id="timer-text" style="font-size:1.5em;">30 秒</span>
         </div>
 
-        <div class="meter-container">
-            <div><strong>全歐戰爭危機指數：<span id="danger-val">15</span>%</strong> (剩餘決策：<span id="turns-left" style="color:#ffc107;">5</span>/5)</div>
+        <div class="meter-container" id="meter-container">
+            <div>
+                <strong>全歐戰爭危機指數：<span id="danger-val">15</span>%</strong> 
+                <span id="turns-left-text">(剩餘決策：<span id="turns-left" style="color:#ffc107;">5</span>/5)</span>
+            </div>
             <div class="danger-meter"><div id="danger-fill" class="danger-fill"></div></div>
+            <div id="war-status-banner-holder"></div>
         </div>
 
-        <!-- 動態事件與選項 -->
-        <div class="event-box">
+        <div class="event-box" id="event-box">
             <div class="event-title" id="event-year-title">📅 歷史事件載入中...</div>
             <div id="event-desc">...</div>
         </div>
 
         <div id="controls" class="btn-grid">
-            <!-- 動態生成 5 個選項 -->
+            <!-- 動態生成選項 -->
         </div>
     </div>
 
-    <!-- 開場簡介區域 -->
     <div id="intro-area" class="intro-card">
         <h3 style="color: #ffc107; margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px;">📜 遊戲簡介與國家簡報</h3>
         <p><b>【背景】：</b> 進入 20 世紀初，全歐洲列強爭奪加劇。你將代表歐洲大國之一，面對 1900 至 1912 年間發生的 5 大歷史事件進行外交與軍事決策。</p>
@@ -216,8 +249,7 @@
                 <span>⚔️ 軍事：<span id="intro-military" style="color:#ffc107;">0</span></span>
                 <span>🔥 民意：<span id="intro-pop" style="color:#ffc107;">0%</span></span>
                 <span>💰 經濟：<span id="intro-econ" style="color:#ffc107;">0</span></span>
-                <span>🌍 殖民地：<span id="intro-colony" style="color:#ffc107;">0</span></span>
-                <span>🏛️ 聲譽：<span id="intro-rep" style="color:#ffc107;">0</span></span>
+                <span>🏛️ 國際地位：<span id="intro-rep" style="color:#ffc107;">0</span></span>
             </div>
             <p style="margin: 10px 0 0 0; font-size: 0.95em; color: #aaa;">🌟 初始綜合國力總分：<b id="intro-total" style="color: #28a745; font-size: 1.2em;">0</b></p>
         </div>
@@ -234,20 +266,17 @@
     <div id="log"></div>
 </div>
 
-<!-- 停頓點：歷史決策反思彈窗 -->
 <div id="result-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header" id="modal-title">📌 歷史決策結果報告</div>
-        <div class="modal-body" id="modal-body">
-            <!-- 動態注入選擇結果 -->
-        </div>
+        <div class="modal-body" id="modal-body"></div>
         <button class="next-btn" onclick="closeModalNextTurn()">了解，進入下一階段 ➔</button>
         <div style="clear:both;"></div>
     </div>
 </div>
 
 <script>
-    let military, pop, econ, colony, rep, danger, turnsLeft, turnIndex, initialScore;
+    let military, pop, econ, rep, danger, turnsLeft, turnIndex, initialScore;
     let timerInterval = null;
     let timeLeft = 30;
 
@@ -256,55 +285,55 @@
             year: "1900 年 - 義和團運動與遠東爭端",
             desc: "遠東爆發義和團運動，列強紛紛派兵。對手正密謀擴大在亞洲的勢力，國內商業團體要求政府採取強硬措施保護海外利益。",
             options: [
-                { title: "🚢 派遣皇家艦隊遠征遠東示威", intro: "向遠東派出主力戰艦展開軍事威懾，強硬展示大國武力。", effect: { military: 15, colony: 10, danger: 12 }, msg: "派兵成功保護了遠東利益，但刺激了對手在當地的戒備。" },
-                { title: "📜 與鄰國簽署《遠東利益互防條約》", intro: "與周邊大國締結秘密同盟，約定在遠東利益受威脅時共同進退。", effect: { military: 10, rep: 10, danger: 10 }, msg: "透過外交結盟鞏固了防線，但導致區域陣營劃分更為明顯。" },
-                { title: "💰 提高關稅並資助海外華商擴展", intro: "運用經濟手段補貼本國商人，同時調高對外關稅以保護貿易。", effect: { econ: 15, pop: 10, danger: 8 }, msg: "經濟實力與民意上升，但引發對手對等的貿易報復。" },
-                { title: "🤝 倡議各國共同維持遠東「門戶開放」", intro: "呼籲列強共享商業利益，不獨佔利益，以外交對話解決爭端。", effect: { rep: 15, econ: 5, danger: 6 }, msg: "贏得國際聲譽，但對手私下仍繼續擴張軍事影響力。" },
-                { title: "☕ 不行動：觀望局勢，不作干預", intro: "選擇保持中立與靜觀其變，不派遣軍隊也不簽署任何協議。", effect: { colony: -10, pop: -10, rep: -5, danger: 5 }, msg: "因不作為，海外利益被對手蠶食，國內商界與民意表達極大失望！" }
+                { title: "🚢 派遣皇家艦隊遠征遠東示威", effect: { military: 15, rep: 10, danger: 12 }, msg: "派兵成功保護了遠東利益，但刺激了對手在當地的戒備。" },
+                { title: "📜 與鄰國簽署《遠東利益互防條約》", effect: { military: 10, rep: 10, danger: 10 }, msg: "透過外交結盟鞏固了防線，但導致區域陣營劃分更為明顯。" },
+                { title: "💰 提高關稅並資助海外華商擴展", effect: { econ: 15, pop: 10, danger: 8 }, msg: "經濟實力與民意上升，但引發對手對等的貿易報復。" },
+                { title: "🤝 倡議各國共同維持遠東「門戶開放」", effect: { rep: 15, econ: 5, danger: 6 }, msg: "贏得國際地位與聲譽，但對手私下仍繼續擴張軍事影響力。" },
+                { title: "☕ 不行動：觀望局勢，不作干預", effect: { pop: -10, rep: -10, danger: 5 }, msg: "因不作為，海外利益被對手蠶食，國內商界與民意表達極大失望！" }
             ]
         },
         {
             year: "1905 年 - 第一次摩洛哥危機",
             desc: "德皇突然訪問摩洛哥，挑戰法國在北非的獨佔地位。北非殖民地局勢拉響警報，外交風暴襲來。",
             options: [
-                { title: "⚓ 派遣戰艦前往摩洛哥港口對峙", intro: "直接將艦隊開進摩洛哥港口示威，力挺盟友在北非的霸權。", effect: { military: 20, colony: 10, danger: 15 }, msg: "成功捍衛殖民地版圖，但局勢一度瀕臨戰爭邊緣！" },
-                { title: "🔥 授意國內報章報導敵國外交野心", intro: "動員國內媒體大幅報導敵國威脅，激發全民愛國與敵對情緒。", effect: { pop: 20, rep: -5, danger: 12 }, msg: "國內愛國情緒高脹，民意飆升，但也封死外交妥協空間。" },
-                { title: "🏛️ 召開國際會議進行外交協調", intro: "邀請各列強召開外交大會，試圖透過集體表決孤立對手。", effect: { rep: 15, econ: 5, danger: 8 }, msg: "透過國際外交孤立了對手，獲得勝訴但加深了對手仇恨。" },
-                { title: "🤝 私下以其他經濟特權進行利益交換", intro: "在秘密談判中讓出部分經濟特權，換取對手撤回軍事威脅。", effect: { econ: 10, colony: -5, danger: 7 }, msg: "暫時平息危機，但國內強硬派批評政府妥協懦弱。" },
-                { title: "☕ 不行動：視為地區小紛爭不予回應", intro: "認為這只是北非局部摩擦，不採取任何外交或軍事動作。", effect: { rep: -10, military: -5, danger: 8 }, msg: "盟友認為你缺乏擔當，國際聲譽下滑，敵國則視你為軟弱可欺。" }
+                { title: "⚓ 派遣戰艦前往摩洛哥港口對峙", effect: { military: 20, rep: 10, danger: 15 }, msg: "成功捍衛殖民地版圖與地位，但局勢一度瀕臨戰爭邊緣！" },
+                { title: "🔥 授意國內報章報導敵國外交野心", effect: { pop: 20, rep: -5, danger: 12 }, msg: "國內愛國情緒高脹，民意飆升，但也封死外交妥協空間。" },
+                { title: "🏛️ 召開國際會議進行外交協調", effect: { rep: 15, econ: 5, danger: 8 }, msg: "透過國際外交孤立了對手，獲得勝訴並提升國際地位。" },
+                { title: "🤝 私下以其他經濟特權進行利益交換", effect: { econ: 10, rep: -5, danger: 7 }, msg: "暫時平息危機，但國內強硬派批評政府妥協懦弱。" },
+                { title: "☕ 不行動：視為地區小紛爭不予回應", effect: { rep: -15, military: -5, danger: 8 }, msg: "盟友認為你缺乏擔當，國際地位下滑，敵國則視你為軟弱可欺。" }
             ]
         },
         {
             year: "1906 年 - 「無畏號」戰艦下水",
             desc: "英國革命性的新型「無畏艦」下水，舊式戰艦一夕間過時。列強海軍力量對比被重新拉回起跑線。",
             options: [
-                { title: "🚀 批准特別預算，大規模建造無畏艦", intro: "撥出巨額資金興建最新型巨艦，決心奪取全球海軍霸權。", effect: { military: 25, econ: -10, danger: 18 }, msg: "軍事力量大幅飛躍，但引發全歐瘋狂的海軍造艦競賽！" },
-                { title: "🛠️ 專注陸軍現代化與邊境堡壘建設", intro: "放棄昂貴的海軍競賽，將資源集中於陸軍裝備與邊境防禦。", effect: { military: 15, econ: 5, danger: 10 }, msg: "鞏固了本土防禦，但海權競爭逐漸被對方趕超。" },
-                { title: "📜 加強與盟國的海軍防務分工演習", intro: "與盟國簽署海軍防務協議，將不同海域交由盟國分工巡邏。", effect: { military: 10, rep: 10, danger: 12 }, msg: "強化了同盟約束力，但也代表一旦開戰將無法獨善其身。" },
-                { title: "🕊️ 提議召開海軍軍備限制會議", intro: "向對手提出共同凍結造艦計劃，試圖阻止龐大的軍費開支。", effect: { rep: 10, econ: 10, danger: 8 }, msg: "展示談判誠意，但對手認為這只是你想維持優勢的計謀。" },
-                { title: "☕ 不行動：維持原有海軍編制與預算", intro: "拒絕跟風造艦，維持現有軍費規模，不做額外投資。", effect: { military: -15, pop: -10, danger: 6 }, msg: "海軍技術迅速落後，軍事力量被大幅拉開，民意對防務表達焦慮！" }
+                { title: "🚀 批准特別預算，大規模建造無畏艦", effect: { military: 25, econ: -10, danger: 18 }, msg: "軍事力量大幅飛躍，但引發全歐瘋狂的海軍造艦競賽！" },
+                { title: "🛠️ 專注陸軍現代化與邊境堡壘建設", effect: { military: 15, econ: 5, danger: 10 }, msg: "鞏固了本土防禦，但海權競爭逐漸被對方趕超。" },
+                { title: "📜 加強與盟國的海軍防務分工演習", effect: { military: 10, rep: 10, danger: 12 }, msg: "強化了同盟約束力與國際地位，但也代表一旦開戰將無法獨善其身。" },
+                { title: "🕊️ 提議召開海軍軍備限制會議", effect: { rep: 15, econ: 10, danger: 8 }, msg: "展示談判誠意並贏得國際肯定，但對手認為這只是你想維持優勢的計謀。" },
+                { title: "☕ 不行動：維持原有海軍編制與預算", effect: { military: -15, pop: -10, danger: 6 }, msg: "海軍技術迅速落後，軍事力量被大幅拉開，民意對防務表達焦慮！" }
             ]
         },
         {
             year: "1908 年 - 波斯尼亞危機",
             desc: "奧匈帝國宣佈吞併波斯尼亞，斯拉夫民族與塞爾維亞強烈憤慨，俄國宣佈軍隊進入預備狀態。",
             options: [
-                { title: "🔥 支持巴爾幹斯拉夫同盟並提供軍火", intro: "向塞爾維亞等國輸送武器與資金，鼓勵其對抗奧匈帝國擴張。", effect: { military: 15, pop: 15, danger: 16 }, msg: "極大激勵了極端民族主義與國內民意，歐洲火藥庫徹底點燃！" },
-                { title: "📜 發表嚴正聲明，嚴格履行盟約承諾", intro: "公開宣示將百分之百支持盟國的所有行動，提供堅定後盾。", effect: { rep: 10, military: 10, danger: 14 }, msg: "展示了盟友忠誠度，但將國家命運深深綁定在巴爾幹局勢上。" },
-                { title: "💰 向受影響國家提供緊急貸款與援助", intro: "不直接提供軍事援助，改以經濟貸款協助巴爾幹國家發展。", effect: { econ: 15, rep: 10, danger: 9 }, msg: "提升了經濟影響力與聲譽，但無法止住區域武力衝突發展。" },
-                { title: "⚖️ 呼籲大國保持克制，交由列強公會調停", intro: "倡議召開多國外交峰會，主張透過國際法與外交談判解決。", effect: { rep: 15, pop: -10, danger: 7 }, msg: "贏得和平聲譽，但各國私下動員的速度絲毫沒有放慢。" },
-                { title: "☕ 不行動：冷眼旁觀，不對巴爾幹表態", intro: "認為巴爾幹是「歐洲後院」，主張不干涉遠方紛爭。", effect: { rep: -15, colony: -5, danger: 8 }, msg: "同盟信任破裂，外交聲譽重創，被認為缺乏大國擔當！" }
+                { title: "🔥 支持巴爾幹斯拉夫同盟並提供軍火", effect: { military: 15, pop: 15, danger: 16 }, msg: "極大激勵了極端民族主義與國內民意，歐洲火藥庫徹底點燃！" },
+                { title: "📜 發表嚴正聲明，嚴格履行盟約承諾", effect: { rep: 10, military: 10, danger: 14 }, msg: "展示了盟友忠誠度與大國地位，但將國家命運深深綁定在巴爾幹局勢上。" },
+                { title: "💰 向受影響國家提供緊急貸款與援助", effect: { econ: 15, rep: 10, danger: 9 }, msg: "提升了經濟影響力與國際地位，但無法止住區域武力衝突發展。" },
+                { title: "⚖️ 呼籲大國保持克制，交由列強公會調停", effect: { rep: 15, pop: -10, danger: 7 }, msg: "贏得和平聲譽與國際地位，但各國私下動員的速度絲毫沒有放慢。" },
+                { title: "☕ 不行動：冷眼旁觀，不對巴爾幹表態", effect: { rep: -15, pop: -10, danger: 8 }, msg: "同盟信任破裂，國際地位重創，被認為缺乏大國擔當！" }
             ]
         },
         {
             year: "1912 年 - 巴爾幹戰爭爆發",
             desc: "巴爾幹同盟向奧斯曼帝國宣戰，巴爾幹半島局勢全面失控。大國背後的代理人戰爭已不可避免。",
             options: [
-                { title: "⚔️ 發動全國軍隊總動員以備不測", intro: "下令軍隊進入最高備戰狀態，鐵路與物資全面轉為軍用。", effect: { military: 20, pop: 10, danger: 20 }, msg: "軍隊整備完畢！但全歐動員連鎖反應觸發，戰爭一觸即發！" },
-                { title: "🌍 強行劃定巴爾幹新國界以保障本國權益", intro: "派外交官與軍事觀察員強行接入畫界，確保本國勢力範圍。", effect: { colony: 15, military: 10, danger: 16 }, msg: "擴大了勢力範圍，但徹底激怒了敵對同盟陣營。" },
-                { title: "📰 發動愛國宣傳，發起「國防捐款」運動", intro: "在國內號召民眾捐款支持防務，激發全民團結抗敵意志。", effect: { pop: 25, econ: 10, danger: 14 }, msg: "民意與愛國情緒達至頂峰，全民引頸期盼一場決戰！" },
-                { title: "🏛️ 召開倫敦大使會議進行最後斡旋", intro: "召集列強大使進行最後和平嘗試，試圖建立緩衝區。", effect: { rep: 20, danger: 10 }, msg: "外交官努力維持最後的和平，但軍方的動員令已無法收回..." },
-                { title: "☕ 不行動：靜待戰果，不進行軍事動員", intro: "完全不採取軍事動員或外交斡旋，聽任局勢自然發展。", effect: { military: -10, pop: -20, danger: 10 }, msg: "措手不及！周邊各國均已完成動員，本國陷於極度被動與民意憤怒中！" }
+                { title: "⚔️ 發動全國軍隊總動員以備不測", effect: { military: 20, pop: 10, danger: 20 }, msg: "軍隊整備完畢！但全歐動員連鎖反應觸發，戰爭一觸即發！" },
+                { title: "🌍 強行劃定巴爾幹新國界以保障本國權益", effect: { rep: 15, military: 10, danger: 16 }, msg: "鞏固了國際地位，但徹底激怒了敵對同盟陣營。" },
+                { title: "📰 發動愛國宣傳，發起「國防捐款」運動", effect: { pop: 25, econ: 10, danger: 14 }, msg: "民意與愛國情緒達至頂峰，全民引頸期盼一場決戰！" },
+                { title: "🏛️ 召開倫敦大使會議進行最後斡旋", effect: { rep: 20, danger: 10 }, msg: "外交官努力維持最後的和平與國際地位，但軍方的動員令已無法收回..." },
+                { title: "☕ 不行動：靜待戰果，不進行軍事動員", effect: { military: -10, pop: -20, danger: 10 }, msg: "措手不及！周邊各國均已完成動員，本國陷於極度被動與民意憤怒中！" }
             ]
         }
     ];
@@ -313,22 +342,22 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    // 更新後的國力生成邏輯
     function generateRandomStats() {
-        let targetTotal = getRandomInt(280, 320);
-        let m = getRandomInt(45, 75);
-        let p = getRandomInt(35, 65);
-        let e = getRandomInt(50, 80);
-        let c = getRandomInt(40, 70);
-        let currentSum = m + p + e + c;
-        let r = targetTotal - currentSum;
+        while (true) {
+            let m = getRandomInt(40, 60);
+            let p = getRandomInt(40, 60);
+            let e = getRandomInt(40, 60);
+            let r = getRandomInt(40, 60);
 
-        if (r < 30 || r > 80) {
-            return generateRandomStats();
+            let targetTotal = m + p + e + r;
+
+            if (targetTotal >= 180 && targetTotal <= 220) {
+                return { military: m, pop: p, econ: e, rep: r, total: targetTotal };
+            }
         }
-        return { military: m, pop: p, econ: e, colony: c, rep: r, total: targetTotal };
     }
 
-    // 初始化簡介頁面
     function setupIntro() {
         clearInterval(timerInterval);
         
@@ -336,7 +365,6 @@
         military = stats.military;
         pop = stats.pop;
         econ = stats.econ;
-        colony = stats.colony;
         rep = stats.rep;
         initialScore = stats.total;
 
@@ -344,17 +372,23 @@
         turnsLeft = 5;
         turnIndex = 0;
 
-        // 更新數據
+        document.getElementById('main-status-grid').style.display = 'grid';
+        document.getElementById('timer-box').style.display = 'flex';
+        document.getElementById('event-box').style.display = 'block';
+        document.getElementById('turns-left-text').style.display = 'inline';
+        
+        let meterContainer = document.getElementById('meter-container');
+        meterContainer.classList.remove('large-meter');
+        document.getElementById('war-status-banner-holder').innerHTML = '';
+
         document.getElementById('st-military').innerText = military;
         document.getElementById('st-pop').innerText = pop + '%';
         document.getElementById('st-econ').innerText = econ;
-        document.getElementById('st-colony').innerText = colony;
         document.getElementById('st-rep').innerText = rep;
 
         document.getElementById('intro-military').innerText = military;
         document.getElementById('intro-pop').innerText = pop + '%';
         document.getElementById('intro-econ').innerText = econ;
-        document.getElementById('intro-colony').innerText = colony;
         document.getElementById('intro-rep').innerText = rep;
         document.getElementById('intro-total').innerText = initialScore;
 
@@ -365,7 +399,6 @@
         log(`等待玩家研讀簡報... 初始國家總國力：<b>${initialScore}</b>。`);
     }
 
-    // 玩家點擊「進入歐洲火藥局」
     function startGame() {
         document.getElementById('intro-area').style.display = 'none';
         document.getElementById('game-main-area').style.display = 'block';
@@ -404,7 +437,6 @@
         document.getElementById('st-military').innerText = military;
         document.getElementById('st-pop').innerText = pop + '%';
         document.getElementById('st-econ').innerText = econ;
-        document.getElementById('st-colony').innerText = colony;
         document.getElementById('st-rep').innerText = rep;
         
         document.getElementById('danger-val').innerText = danger;
@@ -423,8 +455,7 @@
                 let isNoActionClass = idx === 4 ? "no-action" : "";
                 btnsHTML += `
                     <button class="${isNoActionClass}" onclick="playTurn(${idx})">
-                        <b>${opt.title}</b><br>
-                        <small style="color:#ccc;">${opt.intro}</small>
+                        <b>${opt.title}</b>
                     </button>
                 `;
             });
@@ -435,7 +466,7 @@
 
     function formatEffectBadge(eff) {
         let badges = [];
-        const labelMap = { military: "軍事力量", pop: "民意支持", econ: "經濟實力", colony: "殖民地版圖", rep: "國際聲譽" };
+        const labelMap = { military: "軍事力量", pop: "民意支持", econ: "經濟實力", rep: "國際地位" };
         for (let key in labelMap) {
             if (eff[key]) {
                 let val = eff[key];
@@ -460,13 +491,11 @@
         if (eff.military) military += eff.military;
         if (eff.pop) pop += eff.pop;
         if (eff.econ) econ += eff.econ;
-        if (eff.colony) colony += eff.colony;
         if (eff.rep) rep += eff.rep;
 
         let playerDangerAdd = eff.danger || 0;
         let aiBaseIncrease = getRandomInt(6, 12);
         
-        // 累計危機指數 (不在此處設限，精準反映 100% 或以上)
         danger += (playerDangerAdd + aiBaseIncrease);
 
         log(`<span style='color:#6ea8fe;'>決策：${selectedOpt.title}。${selectedOpt.msg}</span>`);
@@ -475,13 +504,11 @@
         if (danger < 0) danger = 0;
         turnsLeft--;
 
-        // 即時同步頁面數據與進度條
         document.getElementById('danger-val').innerText = danger;
         document.getElementById('danger-fill').style.width = Math.min(Math.max(danger, 0), 100) + '%';
         document.getElementById('st-military').innerText = military;
         document.getElementById('st-pop').innerText = pop + '%';
         document.getElementById('st-econ').innerText = econ;
-        document.getElementById('st-colony').innerText = colony;
         document.getElementById('st-rep').innerText = rep;
 
         showModal(currentScene.year, selectedOpt, playerDangerAdd, aiBaseIncrease);
@@ -521,9 +548,9 @@
 
         if (danger >= 100) {
             log("<b style='color:#dc3545;'>【歷史結論】危機徹底失控！各國為求強大與安全，最終卻共同將歐洲推向毀滅！</b>");
-            endGame(true); // 傳入 true 代表因戰爭爆發終局
+            endGame(true);
         } else if (turnsLeft === 0) {
-            endGame(false); // 正常 5 輪完成
+            endGame(false);
         } else {
             turnIndex++;
             updateUI();
@@ -532,19 +559,33 @@
 
     function endGame(isWarExploded) {
         clearInterval(timerInterval);
-        let finalScore = military + pop + econ + colony + rep;
+
+        document.getElementById('main-status-grid').style.display = 'none';
+        document.getElementById('timer-box').style.display = 'none';
+        document.getElementById('event-box').style.display = 'none';
+        document.getElementById('turns-left-text').style.display = 'none';
+
+        let meterContainer = document.getElementById('meter-container');
+        meterContainer.classList.add('large-meter');
+
+        let bannerHolder = document.getElementById('war-status-banner-holder');
+        if (danger >= 100) {
+            bannerHolder.innerHTML = `<div class="war-status-banner exploded">💥 第一次世界大戰爆發！</div>`;
+        } else {
+            bannerHolder.innerHTML = `<div class="war-status-banner warning">⚠️ 暫時仍未爆發大戰，但距離戰爭還有多遠？</div>`;
+        }
+
+        let finalScore = military + pop + econ + rep;
         let scoreDiff = finalScore - initialScore;
         let diffText = scoreDiff >= 0 ? `<span style="color:#28a745;">+${scoreDiff}</span>` : `<span style="color:#dc3545;">${scoreDiff}</span>`;
 
         let cardClass = isWarExploded ? "summary-card war-failed" : "summary-card";
-        let cardTitle = isWarExploded ? "💥 國力結算（全歐大戰爆發）" : "🏆 國力總結結算";
+        let cardTitle = isWarExploded ? "💥 國力結算（大戰爆發）" : "🏆 國力總結結算";
         let cardTitleColor = isWarExploded ? "#dc3545" : "#28a745";
 
-        // 雙欄並列結算介面
         let summaryHTML = `
             <div class="end-game-wrapper">
                 <div class="summary-grid">
-                    <!-- 左欄：國力總結結算 -->
                     <div class="${cardClass}">
                         <h3 style="color:${cardTitleColor};">${cardTitle}</h3>
                         <p style="margin-bottom:8px;"><b>最終國力數值：</b></p>
@@ -552,20 +593,17 @@
                             <li>⚔️ 軍事力量：<b>${military}</b></li>
                             <li>🔥 民意支持：<b>${pop}%</b></li>
                             <li>💰 經濟實力：<b>${econ}</b></li>
-                            <li>🌍 殖民地版圖：<b>${colony}</b></li>
-                            <li>🏛️ 國際聲譽：<b>${rep}</b></li>
+                            <li>🏛️ 國際地位：<b>${rep}</b></li>
                         </ul>
                         <p style="margin:6px 0;">🌟 <b>初始：${initialScore} ➔ 最終：<span style="font-size:1.25em; color:#ffc107;">${finalScore}</span> (${diffText})</b></p>
-                        <p style="margin:6px 0;">⚠️ <b>危機指數：<span style="color:#dc3545; font-size:1.15em; font-weight:bold;">${danger}%</span></b></p>
                     </div>
 
-                    <!-- 右欄：思考問題 -->
                     <div class="thinking-card">
                         <h3 style="color:#ffc107;">💡 課堂導引與思考</h3>
-                        <p style="margin:0;">
+                        <p style="margin:0; line-height: 1.6;">
                         <b>1. 局勢控制：</b> 各組在提升國力的同時，有辦法阻止「危機指數」上升嗎？選擇「不行動」為何也會損害國力？<br><br>
                         <b>2. 兩難局面：</b> 增強國力及避免戰爭可否共存？如果只能二選一的情況下，你認為哪方面更重要？<br><br>
-                        <b>3. 遠因對應：</b> 你們選擇的 5 次行動，分別反映了哪些導致一戰的成因？(可參考底下的外交決策日誌)
+                        <b>3. 遠因對應：</b> 你們選擇的 5 次行動，分別反映了哪些導致一戰的成因？<small style="color:#aaa;">(可參考下方之外交決策日誌)</small>
                         </p>
                     </div>
                 </div>
@@ -576,7 +614,6 @@
         log("<b style='color:#28a745;'>【遊戲完成】已成功總結學生國力，請教師引導進入課堂討論。</b>");
     }
 
-    // 頁面載入時準備簡介介面
     setupIntro();
 </script>
 
